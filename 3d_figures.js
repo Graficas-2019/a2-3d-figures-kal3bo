@@ -155,7 +155,369 @@ function draw(gl, objs)
         gl.drawElements(obj.primtype, obj.nIndices, gl.UNSIGNED_SHORT, 0);
     }
 }
+// TO DO: 
+//Mi piramide:
+function createPyramid(gl, translation, rotationAxis){
+    var vertexBuffer;
+    vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
+    //Creando la piramide
+    var verts = [
+        //Bases
+        -0.5, -1.0,  0.0,
+         0.5, -1.0,  0.0,
+         1.0, -1.0,  -1.0,
+
+        -0.5, -1.0,  0.0,
+         1.0, -1.0,  -1.0,
+         0.0, -1.0, -2.0,
+
+        -0.5, -1.0,  0.0,
+         0.0, -1.0, -2.0,
+        -1.0, -1.0, -1.0,
+
+        //Lados
+        -0.5, -1.0,  0.0,
+         0.5, -1.0,  0.0,
+         0.0,  1.0, -1.0,
+
+         0.5, -1.0,  0.0,
+         1.0, -1.0, -1.0,
+         0.0, 1.0,  -1.0,
+
+         1.0, -1.0, -1.0,
+         0.0, -1.0, -2.0,
+         0.0,  1.0, -1.0,
+
+         0.0, -1.0, -2.0,
+        -1.0, -1.0, -1.0,
+         0.0,  1.0, -1.0,
+
+        -1.0, -1.0, -1.0,
+        -0.5, -1.0, 0.0,
+         0.0, 1.0, -1.0
+       ];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    
+    //Colores
+    var colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    var faceColors = [
+        [1.0, 1.0, 1.0],
+        [1.0, 1.0, 1.0],
+        [1.0, 1.0, 1.0],
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 1.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]
+    ];
+
+    var vertexColors = [];
+    for (const color of faceColors){
+        for (var j=0; j < 3; j++)
+            vertexColors = vertexColors.concat(color);
+    }
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+    //Define como se conectarán los índices:
+    var pyramidIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pyramidIndexBuffer);
+    var pyramidIndices = [
+        0, 1, 2,      
+        3, 4, 5,      
+        6, 7, 8,      
+        9, 10, 11,                  //Uno tras otro
+        12, 13, 14,   
+        15, 16, 17,   
+        18, 19, 20,   
+        21, 22, 23    
+    ];
+
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pyramidIndices), gl.STATIC_DRAW);
+
+    var pyramid = {
+            buffer:vertexBuffer, colorBuffer:colorBuffer, indices:pyramidIndexBuffer,
+            vertSize:3, nVerts:verts.length, colorSize:3, nColors: 24, nIndices:pyramidIndices.length,
+            primtype:gl.TRIANGLES, modelViewMatrix: mat4.create(), currentTime : Date.now()};
+
+    mat4.translate(pyramid.modelViewMatrix, pyramid.modelViewMatrix, translation);
+
+    // Rotación:
+    pyramid.update = function(){
+        var now = Date.now();
+        var deltat = now - this.currentTime;
+        this.currentTime = now;
+        var fract = deltat / duration;
+        var angle = Math.PI * 2 * fract;
+
+        mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, angle, rotationAxis);
+    };
+
+    return pyramid;
+}
+
+//Mi Dodecahedron todp bonis:
+function createDodecahedron(gl, translation, rotationAxis){
+    var vertexBuffer;
+    vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+
+    //Creando dodecahedron
+    var verts = [
+        0.35682, 0, 0.93417,
+        -0.35682, 0, 0.93417, 
+        0, 0.93417, 0.35682, 
+  
+        0.57735, 0.57735, 0.57735, 
+        -0.57735, 0.57735, 0.57735, 
+  
+        0, -0.93417, 0.35682, 
+        0.57735, -0.57735, 0.57735, 
+        -0.57735, -0.57735, 0.57735, 
+
+        0.93417, 0.35682, 0, 
+        0.93417, -0.35682, 0, 
+        -0.93417, 0.35682, 0, 
+
+        -0.93417, -0.35682, 0, 
+        0, -0.93417, -0.35682, 
+        -0.57735, -0.57735, -0.57735, 
+
+        0.93417, -0.35682, 0,  
+        0.57735, -0.57735, -0.57735, 
+
+        0.35682, 0, -0.93417, 
+        -0.35682, 0, -0.93417, 
+        0, 0.93417, -0.35682,       
+
+        0.57735, 0.57735, -0.57735, 
+        -0.57735, 0.57735, -0.57735,
+    ];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    
+    //Colores
+    var colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    var faceColors = [
+        [0.0, 0.0, 0.0], 
+        [1.0, 1.0, 1.0], 
+        [0.2, 0.0, 1.0], 
+        [0.3, 0.0, 1.0], 
+        [0.4, 1.0, 0.0], 
+        [0.5, 1.0, 0.0], 
+        [1.0, 0.9, 1.0], 
+        [0.6, 0.0, 1.0], 
+        [0.7, 0.0, 1.0], 
+        [0.8, 1.0, 0.0], 
+        [0.7, 0.3, 1.0], 
+        [0.8, 1.0, 0.5], 
+    ];
+
+    var vertexColors = [];
+    for (const color of faceColors){
+        for (var j=0; j < 3; j++)
+            vertexColors = vertexColors.concat(color);
+    }
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+    // Índices
+    var dodecahedronIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, dodecahedronIndexBuffer);
+    var dodecahedronIndices = [
+        0, 1, 2,
+        0, 2, 3,
+        1, 2, 4,
+
+        0, 1, 5,
+        0, 5, 6,
+        1, 5, 7,
+
+        0, 3, 8,
+        0, 6, 8,
+        6, 8, 9,
+
+        1, 4, 10,
+        1, 7, 10,
+        7, 10, 11,
+
+        12, 15, 16,
+        12, 13, 16,
+        13, 16, 17,
+        
+        16, 17, 18,
+        16, 18, 19,
+        17, 18, 20,
+
+        13, 17, 10,
+        10, 11, 13,
+        10, 17, 20,
+
+        8, 15, 16,
+        8, 16, 19,
+        8, 9, 15,
+
+        2, 8,18,
+        2, 3, 8,
+        8, 18, 19,
+
+        5, 7, 11,
+        5, 11, 12,
+        11, 12, 13,
+
+        5, 6, 14,
+        5, 12, 14,
+        12, 14, 15,
+
+        2, 4, 10,
+        2, 10, 20,
+        2, 18, 20,
+    ];
+
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(dodecahedronIndices), gl.STATIC_DRAW);
+
+    var dodecahedron = {
+            buffer:vertexBuffer, colorBuffer:colorBuffer, indices:dodecahedronIndexBuffer,
+            vertSize:3, nVerts:verts.length, colorSize:3, nColors: vertexColors.length, nIndices:dodecahedronIndices.length,
+            primtype:gl.TRIANGLES, modelViewMatrix: mat4.create(), currentTime : Date.now()};
+
+    mat4.translate(dodecahedron.modelViewMatrix, dodecahedron.modelViewMatrix, translation);
+    
+    // Rotación:
+    dodecahedron.update = function(){
+        var now = Date.now();
+        var deltat = now - this.currentTime;
+        this.currentTime = now;
+        var fract = deltat / duration;
+        var angle = Math.PI * 2 * fract;
+        mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, angle, rotationAxis);
+    };
+
+    return dodecahedron;
+}
+
+// Mi octahedron
+function createOctahedron(gl, translation, rotationAxis){
+    var vertexBuffer;
+    vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+
+    //Creando octahedron
+    var verts = [
+        0.0, 0.0, 1.0,
+        0.0, 1.0,  0.0,
+        1.0, 0.0,  0.0,
+
+        0.0, 0.0, 1.0,
+        1.0, 0.0,  0.0,
+        0.0, -1.0,  0.0,
+
+        0.0, 0.0, 1.0,
+        0.0, -1.0,  0.0,
+        -1.0, 0.0,  0.0,
+        
+        0.0, 0.0, 1.0,
+        -1.0, 0.0,  0.0,
+        0.0, 1.0,  0.0,
+        
+        0.0, 0.0, -1.0,
+        0.0, 1.0,  0.0,
+        1.0, 0.0,  0.0,
+        
+        0.0, 0.0, -1.0,
+        1.0, 0.0,  0.0,
+        0.0, -1.0,  0.0,
+        
+        0.0, 0.0, -1.0,
+        0.0, -1.0,  0.0,
+        -1.0, 0.0,  0.0,
+        
+        0.0, 0.0, -1.0,
+        -1.0, 0.0,  0.0,
+        0.0, 1.0,  0.0,
+        ];
+ 
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+    
+    //Colores
+    var colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    var faceColors = [
+        [1.0, 0.0, 0.0], 
+        [0.0, 1.0, 0.0], 
+        [0.0, 0.0, 1.0], 
+        [1.0, 1.0, 1.0], 
+        [1.0, 0.0, 1.0], 
+        [0.0, 1.0, 1.0], 
+        [0.0, 0.0, 0.0], 
+        [0.0, 0.5, 0.0], 
+    ];
+
+    var vertexColors = [];
+    for (const color of faceColors){
+        for (var j=0; j < 3; j++)
+            vertexColors = vertexColors.concat(color);
+    }
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+    // Índices:
+    var octahedronIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, octahedronIndexBuffer);
+    var octahedronIndices = [
+      0,1,2,
+      3,4,5,
+      6,7,8,
+      9,10,11,
+      12,13,14,
+      15,16,17,
+      18,19,20,
+      21,22,23
+    ];
+
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(octahedronIndices), gl.STATIC_DRAW);
+
+    var octahedron = {
+            buffer:vertexBuffer, colorBuffer:colorBuffer, indices:octahedronIndexBuffer,
+            vertSize:3, nVerts:verts.length, colorSize:3, nColors: vertexColors.length, nIndices:octahedronIndices.length,
+            primtype:gl.TRIANGLES, modelViewMatrix: mat4.create(), currentTime : Date.now()};
+
+    mat4.translate(octahedron.modelViewMatrix, octahedron.modelViewMatrix, translation);
+    var up = true;  
+    octahedron.update = function(){
+        var now = Date.now();
+        var deltat = now - this.currentTime;
+        this.currentTime = now;
+        var fract = deltat / duration;
+        var angle = Math.PI * 2 * fract;
+        mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, angle, rotationAxis);
+       
+        if (up) {
+            mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [0.0, 10.0*fract, 0]);
+            // If reached the top change to down
+            if (this.modelViewMatrix[13]>3) {
+              up = false;
+            }
+          } else{
+            mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [0.0, -10.0*fract, 0]);
+            // If in bottom change direction
+            if (this.modelViewMatrix[13]<-3) {
+              up = true;
+            }
+          }
+
+        
+    };
+
+    
+    return octahedron;
+}
 function run(gl, objs) 
 {
     // The window.requestAnimationFrame() method tells the browser that you wish to perform an animation and requests that the browser call a specified function to update an animation before the next repaint. The method takes a callback as an argument to be invoked before the repaint.
